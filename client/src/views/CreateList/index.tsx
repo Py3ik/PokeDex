@@ -1,10 +1,12 @@
-import { typeBadgeColor } from "@/constants/typeBadgeColor.ts";
 import { usePokemons } from "@/hooks/queries/Pokemon/usePokemons";
 import { useSearchPokemon } from "@/hooks/queries/Pokemon/useSearchPokemon";
 import { useDebounce } from "@/hooks/common/useDebounce";
 import type { PokemonSummary } from "@/types/pokemon";
 import { useRef, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import PokemonCard from "@/components/PokemonCard";
+import Loading from "@/components/Loading";
+import CreatePokemonForm from "@/components/CreatePokemonForm";
 
 const MAX_TOTAL_WEIGHT = Number(import.meta.env.VITE_MAX_TOTAL_WEIGHT);
 const MIN_SPECIES = Number(import.meta.env.VITE_MIN_SPECIES);
@@ -23,16 +25,13 @@ const CreateList = () => {
         : [...prev, pokemon],
     );
   };
-  const totalWeight = selected.reduce((sum, p) => sum + p.weight, 0);
-  const weightPercent = Math.min((totalWeight / MAX_TOTAL_WEIGHT) * 100, 100);
-  const isOverweight = totalWeight > MAX_TOTAL_WEIGHT;
-  const hasEnoughSpecies = selected.length >= MIN_SPECIES;
 
-  const { data, fetchNextPage, hasNextPage } = usePokemons();
+  const { data, fetchNextPage, hasNextPage, isLoading } = usePokemons();
   const { data: searchData, isFetching: isSearching } =
     useSearchPokemon(debouncedSearch);
 
   const isSearchMode = debouncedSearch.length > 0;
+  const loading = isSearchMode ? isSearching : isLoading;
   const pokemons = isSearchMode
     ? (searchData?.data ?? [])
     : (data?.pages.flatMap((p) => p.data) ?? []);
@@ -41,12 +40,32 @@ const CreateList = () => {
     if (inView && hasNextPage) fetchNextPage();
   }, [inView, hasNextPage, fetchNextPage]);
 
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (!pokemons || pokemons.length === 0) {
+    return (
+      <div className="hero min-h-64 bg-base-100 rounded-2xl">
+        <div className="hero-content text-center">
+          <div>
+            <div className="text-6xl mb-4">🔍</div>
+            <h2 className="text-2xl font-bold">No Pokemon found</h2>
+            <p className="text-base-content/60 my-3">
+              Try adjusting your search or check back later
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Create New List</h1>
         <p className="text-base-content/60 mt-1">
-          Select at least {MIN_SPECIES} Pokémon. Total weight must not exceed{" "}
+          Select at least {MIN_SPECIES} Pokemon. Total weight must not exceed{" "}
           {MAX_TOTAL_WEIGHT} hg.
         </p>
       </div>
@@ -84,7 +103,7 @@ const CreateList = () => {
             </svg>
             <input
               type="search"
-              placeholder="Search Pokémon..."
+              placeholder="Search Pokemon..."
               className="grow"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -95,46 +114,12 @@ const CreateList = () => {
             {pokemons.map((pokemon) => {
               const isSelected = selected.some((p) => p.id === pokemon.id);
               return (
-                <div
+                <PokemonCard
                   key={pokemon.id}
-                  onClick={() => togglePokemon(pokemon)}
-                  className={`card cursor-pointer border-2 transition-all hover:shadow-md ${
-                    isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-transparent bg-base-100"
-                  }`}
-                >
-                  <div className="card-body items-center text-center p-3">
-                    <div className="relative">
-                      <img
-                        src={pokemon.image ?? ""}
-                        alt={pokemon.name}
-                        className="w-16 h-16 object-contain"
-                      />
-                      {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">✓</span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="font-medium capitalize text-sm">
-                      {pokemon.name}
-                    </p>
-                    <p className="text-xs text-base-content/50">
-                      ⚖️ {pokemon.weight} hg
-                    </p>
-                    <div className="flex flex-wrap gap-1 justify-center">
-                      {pokemon.types.map((type) => (
-                        <span
-                          key={type}
-                          className={`badge badge-xs ${typeBadgeColor[type] ?? "badge-ghost"}`}
-                        >
-                          {type}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                  pokemon={pokemon}
+                  isSelected={isSelected}
+                  togglePokemon={togglePokemon}
+                />
               );
             })}
           </div>
@@ -149,102 +134,11 @@ const CreateList = () => {
           </div>
         </div>
 
-        <div className="lg:w-80 shrink-0">
-          <div className="card bg-base-100 shadow-sm sticky top-4">
-            <div className="card-body">
-              <h2 className="card-title text-lg">Selected Pokémon</h2>
-
-              <div className="mb-2">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-base-content/60">Total weight</span>
-                  <span
-                    className={`font-bold ${isOverweight ? "text-error" : ""}`}
-                  >
-                    {totalWeight} / {MAX_TOTAL_WEIGHT} hg
-                  </span>
-                </div>
-                <progress
-                  className={`progress w-full ${isOverweight ? "progress-error" : "progress-primary"}`}
-                  value={weightPercent}
-                  max="100"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1 mb-3">
-                <div
-                  className={`flex items-center gap-2 text-sm ${hasEnoughSpecies ? "text-success" : "text-base-content/50"}`}
-                >
-                  <span>{hasEnoughSpecies ? "✓" : "○"}</span>
-                  <span>At least {MIN_SPECIES} different species</span>
-                </div>
-                <div
-                  className={`flex items-center gap-2 text-sm ${!isOverweight ? "text-success" : "text-error"}`}
-                >
-                  <span>{!isOverweight ? "✓" : "✗"}</span>
-                  <span>Total weight ≤ {MAX_TOTAL_WEIGHT} hg</span>
-                </div>
-              </div>
-
-              {selected.length === 0 ? (
-                <div className="text-center py-6 text-base-content/40">
-                  <div className="text-3xl mb-2">👆</div>
-                  <p className="text-sm">Click on Pokémon to add them</p>
-                </div>
-              ) : (
-                <ul className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                  {selected.map((p) => (
-                    <li
-                      key={p.id}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={p.image ?? ""}
-                          alt={p.name}
-                          className="w-8 h-8 object-contain"
-                        />
-                        <span className="capitalize text-sm font-medium">
-                          {p.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-base-content/50">
-                          {p.weight} hg
-                        </span>
-                        <button
-                          onClick={() => togglePokemon(p)}
-                          className="btn btn-ghost btn-xs text-error"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <label className="form-control mb-3">
-                <div className="label">
-                  <span className="label-text text-sm">List name</span>
-                </div>
-                <input
-                  type="text"
-                  placeholder="My awesome team..."
-                  className="input input-bordered input-sm"
-                />
-              </label>
-
-              <button
-                className="btn btn-primary w-full"
-                disabled={
-                  !hasEnoughSpecies || isOverweight || selected.length === 0
-                }
-              >
-                Save List
-              </button>
-            </div>
-          </div>
-        </div>
+        <CreatePokemonForm
+          selected={selected}
+          togglePokemon={togglePokemon}
+          setSelected={setSelected}
+        />
       </div>
     </div>
   );
