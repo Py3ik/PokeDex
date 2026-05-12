@@ -1,0 +1,108 @@
+# Pokémon Collection App
+
+A full-stack web application for creating and managing personal Pokémon collections. Browse Pokémon from the PokéAPI, build teams, export them to JSON, and import them back.
+
+## Stack
+
+| Layer    | Technology                                                                        |
+| -------- | --------------------------------------------------------------------------------- |
+| Frontend | React 18, TypeScript, Vite, TailwindCSS, DaisyUI, TanStack Query, React Router v6 |
+| Backend  | NestJS, MongoDB (Mongoose), `@nestjs/axios`, class-validator, Swagger             |
+| Database | MongoDB                                                                           |
+| Infra    | Docker, Docker Compose                                                            |
+
+## Getting Started
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/) and Docker Compose
+
+### 1. Clone the repository
+
+```bash
+git clone <repo-url>
+cd pokemon-app
+```
+
+### 2. Create the environment file
+
+Create a `.env` file in the project root:
+
+```env
+# Ports
+SERVER_PORT=3000
+CLIENT_PORT=5173
+
+# Server
+MONGO_URI=mongodb://mongo:27017/pokemon-app
+POKEAPI_URL=https://pokeapi.co/api/v2
+CLIENT_URL=http://localhost:5173
+MAX_TOTAL_WEIGHT=1300
+MIN_SPECIES=3
+
+# Client (Vite)
+VITE_API_URL=http://localhost:3000
+VITE_MAX_TOTAL_WEIGHT=1300
+VITE_MIN_SPECIES=3
+VITE_PAGINATION_LIMIT=12
+```
+
+### 3. Run
+
+**macOS / Linux:**
+
+```bash
+make run
+```
+
+**Windows:**
+
+```bash
+docker compose up --build
+```
+
+The app will be available at [http://localhost:5173](http://localhost:5173).  
+API docs (Swagger) at [http://localhost:3000/api](http://localhost:3000/api).
+
+## Features
+
+- Browse Pokémon with pagination (fetched from [PokéAPI](https://pokeapi.co))
+- Search Pokémon by name
+- Create a named collection by selecting Pokémon
+- View, delete collections
+- **Export** a collection to a `.json` file (stores only Pokémon IDs)
+- **Import** a `.json` file — the server re-fetches all Pokémon data from PokéAPI by ID, so client-side data cannot be tampered with
+- Duplicate collection names are automatically suffixed: `My Team`, `My Team (1)`, `My Team (2)`, etc.
+
+### Validation rules (configurable via `.env`)
+
+| Rule                   | Default |
+| ---------------------- | ------- |
+| Minimum unique species | 3       |
+| Maximum total weight   | 1300 hg |
+
+## API Endpoints
+
+| Method   | Path                    | Description                                   |
+| -------- | ----------------------- | --------------------------------------------- |
+| `GET`    | `/pokemon`              | Paginated Pokémon list                        |
+| `GET`    | `/pokemon/search?name=` | Search by name                                |
+| `GET`    | `/collections`          | Paginated collections                         |
+| `GET`    | `/collections/:id`      | Single collection                             |
+| `POST`   | `/collections`          | Create collection (send full Pokémon objects) |
+| `POST`   | `/collections/import`   | Import collection by `{ name, pokemonIds[] }` |
+| `DELETE` | `/collections/:id`      | Delete collection                             |
+
+## Architectural Decisions
+
+**Separation of import and create endpoints**  
+`POST /collections` accepts full Pokémon objects from the client (used when creating via UI where data comes directly from PokeAPI). `POST /collections/import` accepts only `{ name, pokemonIds }` and re-fetches all Pokémon data server-side — this ensures imported files cannot contain manipulated weights, types, or names.
+
+**Single root `.env`**  
+All services (NestJS, Vite, Docker Compose) share one `.env` at the project root. Vite reads it via `envDir: ".."` in `vite.config.ts`. This avoids duplicating configuration across multiple files.
+
+**MongoDB stores full Pokémon data inside collections**  
+Each collection document embeds the full Pokémon snapshot (id, name, weight, image, types). `totalWeight` is computed as a virtual field. This keeps reads fast and self-contained without joins or additional PokeAPI calls at read time.
+
+**Docker Compose with `npm install` on start**  
+Both services run `npm install && npm run ...` on container start. This avoids stale `node_modules` when dependencies change between rebuilds without full image rebuilds.
