@@ -31,7 +31,6 @@ const CreateList = () => {
     useSearchPokemon(debouncedSearch);
 
   const isSearchMode = debouncedSearch.length > 0;
-  const loading = isSearchMode ? isSearching : isLoading;
   const pokemons = isSearchMode
     ? (searchData?.data ?? [])
     : (data?.pages.flatMap((p) => p.data) ?? []);
@@ -40,11 +39,11 @@ const CreateList = () => {
     if (inView && hasNextPage) fetchNextPage();
   }, [inView, hasNextPage, fetchNextPage]);
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 
-  if (!pokemons || pokemons.length === 0) {
+  if ((!pokemons || pokemons.length === 0) && !isSearchMode) {
     return (
       <div className="hero min-h-64 bg-base-100 rounded-2xl">
         <div className="hero-content text-center">
@@ -108,6 +107,20 @@ const CreateList = () => {
               );
             })}
           </div>
+
+          {isSearchMode && !isSearching && pokemons.length === 0 && (
+            <div className="hero min-h-40 bg-base-100 rounded-2xl mt-4">
+              <div className="hero-content text-center">
+                <div>
+                  <div className="text-4xl mb-2">🔍</div>
+                  <p className="font-semibold">No Pokemon found</p>
+                  <p className="text-sm text-base-content/50 mt-1">
+                    Try a different name, e.g. "pikachu" or "bulbasaur"
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div ref={ref} className="h-10 flex items-center justify-center mt-4">
             {!isSearchMode && hasNextPage && (
