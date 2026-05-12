@@ -12,6 +12,22 @@ const UploadCollection = () => {
   const navigate = useNavigate();
   const { mutateAsync, isPending: isImporting } = useImportCollection();
   const [importedId, setImportedId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = async (file: File) => {
+    let json: { name: string; pokemonIds: number[] };
+    try {
+      json = await parseCollectionFile(file);
+    } catch {
+      showToast("Invalid or corrupted file", "error");
+      return;
+    }
+
+    await mutateAsync(json).then((object) => {
+      setImportedId(object._id);
+      importSuccessModalRef.current?.showModal();
+    });
+  };
 
   return (
     <>
@@ -19,9 +35,28 @@ const UploadCollection = () => {
         className={`border-2 border-dashed rounded-2xl p-6 mb-6 text-center transition-colors ${
           isImporting
             ? "border-primary bg-base-100 cursor-not-allowed"
-            : "border-base-300 cursor-pointer hover:border-primary hover:bg-base-100"
+            : isDragging
+              ? "border-primary bg-base-100 cursor-copy"
+              : "border-base-300 cursor-pointer hover:border-primary hover:bg-base-100"
         }`}
         onClick={() => !isImporting && fileInputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!isImporting) setIsDragging(true);
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          if (!isImporting) setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={async (e) => {
+          e.preventDefault();
+          setIsDragging(false);
+          if (isImporting) return;
+          const file = e.dataTransfer.files?.[0];
+          if (!file) return;
+          await handleFile(file);
+        }}
       >
         <input
           ref={fileInputRef}
@@ -31,21 +66,7 @@ const UploadCollection = () => {
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-
-            let json: { name: string; pokemonIds: number[] };
-            try {
-              json = await parseCollectionFile(file);
-            } catch {
-              showToast("Invalid or corrupted file", "error");
-              e.target.value = "";
-              return;
-            }
-
-            await mutateAsync(json).then((object) => {
-              setImportedId(object._id);
-              importSuccessModalRef.current?.showModal();
-            });
-
+            await handleFile(file);
             e.target.value = "";
           }}
         />
