@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Get,
+  Query,
+} from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 
@@ -14,5 +22,9 @@ export class CollectionsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.collectionsService.remove(Number(id));
+  }
+  @Get()
+  findAll(@Query('limit') limit: number, @Query('offset') offset: number) {
+    return this.collectionsService.getAllCollections(limit, offset);
   }
 }

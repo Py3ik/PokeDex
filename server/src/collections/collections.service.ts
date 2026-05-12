@@ -11,6 +11,23 @@ export class CollectionsService {
     private collectionModel: Model<Collection>,
   ) {}
 
+  async getAllCollections(limit = 20, offset = 0) {
+    const collections = await this.collectionModel
+      .find()
+      .skip(offset)
+      .limit(limit)
+      .exec();
+
+    const total = await this.collectionModel.countDocuments();
+
+    return {
+      data: collections,
+      total,
+      limit,
+      offset,
+    };
+  }
+
   async create(createCollectionDto: CreateCollectionDto) {
     const createdCollection =
       await this.collectionModel.create(createCollectionDto);
