@@ -24,7 +24,7 @@ const Layout = () => {
         <div className="navbar-start">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl">⚡</span>
-            <span className="text-xl font-bold text-primary">PokéDex App</span>
+            <span className="text-xl font-bold text-primary">PokeDex App</span>
           </Link>
         </div>
         <div className="navbar-center hidden md:flex">
