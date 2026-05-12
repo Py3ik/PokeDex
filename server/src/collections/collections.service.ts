@@ -11,7 +11,7 @@ export class CollectionsService {
     private collectionModel: Model<Collection>,
   ) {}
 
-  async getCollectionById(id: number) {
+  async getCollectionById(id: string) {
     return this.collectionModel.findById(id).exec();
   }
 
@@ -40,7 +40,7 @@ export class CollectionsService {
     return createdCollection;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return this.collectionModel.findByIdAndDelete(id).exec();
   }
 }

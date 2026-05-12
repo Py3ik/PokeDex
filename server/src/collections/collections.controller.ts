@@ -21,7 +21,7 @@ export class CollectionsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.collectionsService.remove(Number(id));
+    return this.collectionsService.remove(id);
   }
   @Get()
   findAll(@Query('limit') limit: number, @Query('offset') offset: number) {
@@ -30,6 +30,6 @@ export class CollectionsController {
 
   @Get(':id')
   findById(@Param('id') id: string) {
-    return this.collectionsService.getCollectionById(Number(id));
+    return this.collectionsService.getCollectionById(id);
   }
 }
