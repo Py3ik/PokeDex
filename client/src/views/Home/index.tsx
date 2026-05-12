@@ -4,7 +4,7 @@ import { useCollections } from "@/hooks/queries/Collection/useCollections";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const LIMIT = 12;
+const LIMIT = Number(import.meta.env.VITE_PAGINATION_LIMIT) || 12;
 
 const Home = () => {
   const [offset, setOffset] = useState(0);

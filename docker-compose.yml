@@ -5,8 +5,9 @@ services:
     ports:
       - "${CLIENT_PORT}:5173"
     volumes:
-      - ./client:/app
-      - /app/node_modules
+      - .:/project
+      - /project/client/node_modules
+    working_dir: /project/client
     command: sh -c "npm install && npm run dev -- --host"
     env_file:
       - .env
