@@ -11,6 +11,10 @@ export class CollectionsService {
     private collectionModel: Model<Collection>,
   ) {}
 
+  async getCollectionById(id: number) {
+    return this.collectionModel.findById(id).exec();
+  }
+
   async getAllCollections(limit = 20, offset = 0) {
     const collections = await this.collectionModel
       .find()
@@ -29,6 +33,7 @@ export class CollectionsService {
   }
 
   async create(createCollectionDto: CreateCollectionDto) {
+    console.log(createCollectionDto, 'createCollectionDto');
     const createdCollection =
       await this.collectionModel.create(createCollectionDto);
 

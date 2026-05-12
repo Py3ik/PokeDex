@@ -21,7 +21,7 @@ export class Pokemon {
   types!: string[];
 }
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, toJSON: { virtuals: true } })
 export class Collection {
   @Prop({ required: true })
   name!: string;

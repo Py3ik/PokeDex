@@ -27,4 +27,9 @@ export class CollectionsController {
   findAll(@Query('limit') limit: number, @Query('offset') offset: number) {
     return this.collectionsService.getAllCollections(limit, offset);
   }
+
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.collectionsService.getCollectionById(Number(id));
+  }
 }
