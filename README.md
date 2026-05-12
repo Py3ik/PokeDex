@@ -1,6 +1,6 @@
-# Pokémon Collection App
+# Pokemon Collection App
 
-A full-stack web application for creating and managing personal Pokémon collections. Browse Pokémon from the PokéAPI, build teams, export them to JSON, and import them back.
+A full-stack web application for creating and managing personal Pokemon collections. Browse Pokemon from the PokeAPI, build teams, export them to JSON, and import them back.
 
 ## Stack
 
@@ -66,12 +66,12 @@ API docs (Swagger) at [http://localhost:3000/api](http://localhost:3000/api).
 
 ## Features
 
-- Browse Pokémon with pagination (fetched from [PokéAPI](https://pokeapi.co))
-- Search Pokémon by name
-- Create a named collection by selecting Pokémon
+- Browse Pokemon with pagination (fetched from [PokeAPI](https://pokeapi.co))
+- Search Pokemon by name
+- Create a named collection by selecting Pokemon
 - View, delete collections
-- **Export** a collection to a `.json` file (stores only Pokémon IDs)
-- **Import** a `.json` file — the server re-fetches all Pokémon data from PokéAPI by ID, so client-side data cannot be tampered with
+- **Export** a collection to a `.json` file (stores only Pokemon IDs)
+- **Import** a `.json` file — the server re-fetches all Pokemon data from PokeAPI by ID, so client-side data cannot be tampered with
 - Duplicate collection names are automatically suffixed: `My Team`, `My Team (1)`, `My Team (2)`, etc.
 
 ### Validation rules (configurable via `.env`)
@@ -85,24 +85,24 @@ API docs (Swagger) at [http://localhost:3000/api](http://localhost:3000/api).
 
 | Method   | Path                    | Description                                   |
 | -------- | ----------------------- | --------------------------------------------- |
-| `GET`    | `/pokemon`              | Paginated Pokémon list                        |
+| `GET`    | `/pokemon`              | Paginated Pokemon list                        |
 | `GET`    | `/pokemon/search?name=` | Search by name                                |
 | `GET`    | `/collections`          | Paginated collections                         |
 | `GET`    | `/collections/:id`      | Single collection                             |
-| `POST`   | `/collections`          | Create collection (send full Pokémon objects) |
+| `POST`   | `/collections`          | Create collection (send full Pokemon objects) |
 | `POST`   | `/collections/import`   | Import collection by `{ name, pokemonIds[] }` |
 | `DELETE` | `/collections/:id`      | Delete collection                             |
 
 ## Architectural Decisions
 
 **Separation of import and create endpoints**  
-`POST /collections` accepts full Pokémon objects from the client (used when creating via UI where data comes directly from PokeAPI). `POST /collections/import` accepts only `{ name, pokemonIds }` and re-fetches all Pokémon data server-side — this ensures imported files cannot contain manipulated weights, types, or names.
+`POST /collections` accepts full Pokemon objects from the client (used when creating via UI where data comes directly from PokeAPI). `POST /collections/import` accepts only `{ name, pokemonIds }` and re-fetches all Pokemon data server-side — this ensures imported files cannot contain manipulated weights, types, or names.
 
 **Single root `.env`**  
 All services (NestJS, Vite, Docker Compose) share one `.env` at the project root. Vite reads it via `envDir: ".."` in `vite.config.ts`. This avoids duplicating configuration across multiple files.
 
-**MongoDB stores full Pokémon data inside collections**  
-Each collection document embeds the full Pokémon snapshot (id, name, weight, image, types). `totalWeight` is computed as a virtual field. This keeps reads fast and self-contained without joins or additional PokeAPI calls at read time.
+**MongoDB stores full Pokemon data inside collections**  
+Each collection document embeds the full Pokemon snapshot (id, name, weight, image, types). `totalWeight` is computed as a virtual field. This keeps reads fast and self-contained without joins or additional PokeAPI calls at read time.
 
 **Docker Compose with `npm install` on start**  
 Both services run `npm install && npm run ...` on container start. This avoids stale `node_modules` when dependencies change between rebuilds without full image rebuilds.
