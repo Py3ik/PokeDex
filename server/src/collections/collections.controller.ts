@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { CreateCollectionDto } from './dto/create-collection.dto';
+import { ImportCollectionDto } from './dto/import-collection.dto';
 import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('collections')
@@ -18,6 +19,11 @@ export class CollectionsController {
   @Post()
   create(@Body() createCollectionDto: CreateCollectionDto) {
     return this.collectionsService.create(createCollectionDto);
+  }
+
+  @Post('import')
+  import(@Body() importCollectionDto: ImportCollectionDto) {
+    return this.collectionsService.importCollection(importCollectionDto);
   }
 
   @Delete(':id')

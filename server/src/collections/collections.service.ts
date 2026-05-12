@@ -1,9 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateCollectionDto } from './dto/create-collection.dto';
+import { ImportCollectionDto } from './dto/import-collection.dto';
 import { Collection } from './schemas/collection.schema/collection.schema';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
+import { PokemonService } from '../pokemon/pokemon.service';
 
 @Injectable()
 export class CollectionsService {
@@ -11,6 +13,7 @@ export class CollectionsService {
     @InjectModel(Collection.name)
     private collectionModel: Model<Collection>,
     private readonly config: ConfigService,
+    private readonly pokemonService: PokemonService,
   ) {}
 
   async getCollectionById(id: string) {
@@ -63,5 +66,32 @@ export class CollectionsService {
 
   async remove(id: string) {
     return this.collectionModel.findByIdAndDelete(id).exec();
+  }
+
+  async importCollection(dto: ImportCollectionDto) {
+    const maxWeight = this.config.get<number>('MAX_TOTAL_WEIGHT', 1300);
+    const minSpecies = this.config.get<number>('MIN_SPECIES', 3);
+
+    const pokemons = await this.pokemonService.fetchManyByIds(dto.pokemonIds);
+
+    const uniqueSpecies = new Set(pokemons.map((p) => p.name)).size;
+    if (uniqueSpecies < minSpecies) {
+      throw new BadRequestException(
+        `At least ${minSpecies} different species must be selected`,
+      );
+    }
+
+    const totalWeight = pokemons.reduce((sum, p) => sum + p.weight, 0);
+    if (totalWeight > maxWeight) {
+      throw new BadRequestException(
+        `Total weight ${totalWeight} hg exceeds the limit of ${maxWeight} hg`,
+      );
+    }
+
+    return this.collectionModel.create({
+      name: dto.name,
+      pokemons,
+      totalWeight,
+    });
   }
 }

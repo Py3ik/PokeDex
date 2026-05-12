@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCreateCollection } from "@/hooks/mutations/Collection/useCreateCollection";
+import { useImportCollection } from "@/hooks/mutations/Collection/useImportCollection";
 import { useToast } from "@/context/useToast";
 import { parseCollectionFile } from "@/utils/collection";
 import Modal from "@/components/Modal";
@@ -10,7 +10,7 @@ const UploadCollection = () => {
   const importSuccessModalRef = useRef<HTMLDialogElement>(null);
   const showToast = useToast();
   const navigate = useNavigate();
-  const { mutateAsync, isPending: isImporting } = useCreateCollection();
+  const { mutateAsync, isPending: isImporting } = useImportCollection();
   const [importedId, setImportedId] = useState<string | null>(null);
 
   return (
@@ -31,14 +31,21 @@ const UploadCollection = () => {
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+
+            let json: { name: string; pokemonIds: number[] };
             try {
-              const json = await parseCollectionFile(file);
-              const created = await mutateAsync(json);
-              setImportedId(created._id);
-              importSuccessModalRef.current?.showModal();
+              json = await parseCollectionFile(file);
             } catch {
-              showToast("Invalid file", "error");
+              showToast("Invalid or corrupted file", "error");
+              e.target.value = "";
+              return;
             }
+
+            await mutateAsync(json).then((object) => {
+              setImportedId(object._id);
+              importSuccessModalRef.current?.showModal();
+            });
+
             e.target.value = "";
           }}
         />

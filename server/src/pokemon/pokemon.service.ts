@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -14,6 +14,30 @@ export class PokemonService {
     private readonly httpService: HttpService,
     private readonly config: ConfigService,
   ) {}
+
+  async fetchById(id: number): Promise<PokemonSummary> {
+    const apiUrl = this.config.get<string>('POKEAPI_URL');
+    try {
+      const { data } = await this.httpService.axiosRef.get<PokeApiDetail>(
+        `${apiUrl}/pokemon/${id}`,
+      );
+      return {
+        id: data.id,
+        name: data.name,
+        weight: data.weight,
+        image: data.sprites.front_default,
+        types: data.types.map((t) => t.type.name),
+      };
+    } catch {
+      throw new BadRequestException(
+        `Pokemon with id ${id} does not exist in PokeAPI`,
+      );
+    }
+  }
+
+  async fetchManyByIds(ids: number[]): Promise<PokemonSummary[]> {
+    return Promise.all(ids.map((id) => this.fetchById(id)));
+  }
 
   async getAllPokemon(
     limit = 20,

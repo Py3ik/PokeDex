@@ -6,6 +6,7 @@ import {
   Collection,
   CollectionSchema,
 } from './schemas/collection.schema/collection.schema';
+import { PokemonModule } from '../pokemon/pokemon.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import {
         schema: CollectionSchema,
       },
     ]),
+    PokemonModule,
   ],
   controllers: [CollectionsController],
   providers: [CollectionsService],

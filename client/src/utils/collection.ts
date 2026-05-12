@@ -6,13 +6,7 @@ export const exportCollectionToBlob = (
 ) => {
   const exportData = {
     name: data.name,
-    pokemons: data.pokemons.map(({ id, name, weight, image, types }) => ({
-      id,
-      name,
-      weight,
-      image,
-      types,
-    })),
+    pokemonIds: data.pokemons.map((p) => p.id),
   };
 
   const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -29,7 +23,8 @@ export const exportCollectionToBlob = (
 
 export const parseCollectionFile = async (
   file: File,
-): Promise<{ name: string; pokemons: any[] }> => {
+): Promise<{ name: string; pokemonIds: number[] }> => {
   const text = await file.text();
-  return JSON.parse(text);
+  const json = JSON.parse(text);
+  return { name: json.name, pokemonIds: json.pokemonIds };
 };
