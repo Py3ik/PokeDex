@@ -56,8 +56,10 @@ export class CollectionsService {
       );
     }
 
+    const name = await this.generateUniqueName(createCollectionDto.name);
     const createdCollection = await this.collectionModel.create({
       ...createCollectionDto,
+      name,
       totalWeight,
     });
 
@@ -66,6 +68,19 @@ export class CollectionsService {
 
   async remove(id: string) {
     return this.collectionModel.findByIdAndDelete(id).exec();
+  }
+
+  private async generateUniqueName(name: string): Promise<string> {
+    const exists = await this.collectionModel.exists({ name }).exec();
+    if (!exists) return name;
+
+    let counter = 1;
+    while (
+      await this.collectionModel.exists({ name: `${name} (${counter})` }).exec()
+    ) {
+      counter++;
+    }
+    return `${name} (${counter})`;
   }
 
   async importCollection(dto: ImportCollectionDto) {
@@ -88,10 +103,7 @@ export class CollectionsService {
       );
     }
 
-    return this.collectionModel.create({
-      name: dto.name,
-      pokemons,
-      totalWeight,
-    });
+    const name = await this.generateUniqueName(dto.name);
+    return this.collectionModel.create({ name, pokemons, totalWeight });
   }
 }
