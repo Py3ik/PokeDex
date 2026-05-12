@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
+import pikachuImg from "../../assets/gengar-theme.png";
+import gengarImg from "../../assets/pika-theme.png";
 
 type Theme = "synthwave" | "cyberpunk";
 
@@ -51,7 +53,7 @@ const Layout = () => {
             title={`Switch to ${isDark ? "Synthwave" : "Cyberpunk"}`}
           >
             <img
-              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${isDark ? 94 : 25}.png`}
+              src={isDark ? gengarImg : pikachuImg}
               alt={isDark ? "Gengar" : "Pikachu"}
               className="w-14 h-14 object-contain"
             />
