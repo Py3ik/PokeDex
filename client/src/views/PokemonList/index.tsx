@@ -4,6 +4,7 @@ import { typeBadgeColor } from "@/constants/typeBadgeColor.ts";
 import { useToast } from "@/context/useToast";
 import { useDeleteCollection } from "@/hooks/mutations/Collection/useDeleteCollection";
 import { useCollectionById } from "@/hooks/queries/Collection/useCollectionById";
+import { exportCollectionToBlob } from "@/utils/collection";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -63,7 +64,12 @@ const ViewList = () => {
           </p>
         </div>
 
-        <button className="btn btn-outline btn-primary">⬇ Download</button>
+        <button
+          className="btn btn-outline btn-primary"
+          onClick={() => exportCollectionToBlob(data, showToast)}
+        >
+          Download
+        </button>
       </div>
 
       <div className="stats shadow bg-base-100 w-full mb-6">

@@ -53,8 +53,8 @@ const Layout = () => {
             title={`Switch to ${isDark ? "Synthwave" : "Cyberpunk"}`}
           >
             <img
-              src={isDark ? gengarImg : pikachuImg}
-              alt={isDark ? "Gengar" : "Pikachu"}
+              src={isDark ? pikachuImg : gengarImg}
+              alt={isDark ? "Pikachu" : "Gengar"}
               className="w-14 h-14 object-contain"
             />
           </button>

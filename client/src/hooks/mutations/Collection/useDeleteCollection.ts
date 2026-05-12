@@ -11,7 +11,7 @@ export const useDeleteCollection = () => {
       return res.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: collectionKeys.list() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all });
       return data;
     },
     onError: (error: any) => {

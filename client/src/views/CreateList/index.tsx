@@ -2,10 +2,11 @@ import { usePokemons } from "@/hooks/queries/Pokemon/usePokemons";
 import { useSearchPokemon } from "@/hooks/queries/Pokemon/useSearchPokemon";
 import { useDebounce } from "@/hooks/common/useDebounce";
 import type { PokemonSummary } from "@/types/pokemon";
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import PokemonCard from "@/components/PokemonCard";
 import Loading from "@/components/Loading";
+import UploadCollection from "@/components/UploadCollection";
 import CreatePokemonForm from "@/components/CreatePokemonForm";
 
 const MAX_TOTAL_WEIGHT = Number(import.meta.env.VITE_MAX_TOTAL_WEIGHT);
@@ -13,7 +14,6 @@ const MIN_SPECIES = Number(import.meta.env.VITE_MIN_SPECIES);
 
 const CreateList = () => {
   const { ref, inView } = useInView();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<PokemonSummary[]>([]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
@@ -72,22 +72,7 @@ const CreateList = () => {
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0">
-          <div
-            className="border-2 border-dashed border-base-300 rounded-2xl p-6 mb-6 text-center cursor-pointer hover:border-primary hover:bg-base-100 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-            />
-            <div className="text-3xl mb-2">📂</div>
-            <p className="font-medium">Upload saved list</p>
-            <p className="text-sm text-base-content/50">
-              Click or drag a .json file to restore a list
-            </p>
-          </div>
+          <UploadCollection />
 
           <label className="input input-bordered flex items-center gap-2 mb-4">
             <svg
