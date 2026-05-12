@@ -10,7 +10,7 @@ export interface Collection {
 }
 
 export interface PaginatedCollectionsResponse {
-  data: Collection[];
+  collections: Collection[];
   total: number;
   limit: number;
   offset: number;

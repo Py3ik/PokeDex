@@ -3,15 +3,15 @@ import { collectionKeys } from "@/constants/queries";
 import type { PaginatedCollectionsResponse } from "@/types/collection";
 import { useQuery } from "@tanstack/react-query";
 
-export const useCollections = () => {
+export const useCollections = (limit = 20, offset = 0) => {
   return useQuery({
-    queryKey: collectionKeys.list(),
+    queryKey: collectionKeys.list({ limit, offset }),
     queryFn: async () => {
-      const response =
-        await api.get<PaginatedCollectionsResponse>("collections");
+      const response = await api.get<PaginatedCollectionsResponse>(
+        `collections?limit=${limit}&offset=${offset}`,
+      );
       return response.data;
     },
-    select: (res) => res.data,
     staleTime: 2 * 60 * 1000,
   });
 };

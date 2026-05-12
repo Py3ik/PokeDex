@@ -1,15 +1,20 @@
 import Loading from "@/components/Loading";
+import Pagination from "@/components/Pagination";
 import { useCollections } from "@/hooks/queries/Collection/useCollections";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
+const LIMIT = 12;
+
 const Home = () => {
-  const { data, isLoading } = useCollections();
+  const [offset, setOffset] = useState(0);
+  const { data, isLoading } = useCollections(LIMIT, offset);
 
   if (isLoading) {
     return <Loading />;
   }
 
-  if (!data || data.length === 0) {
+  if (!data || data.collections.length === 0) {
     return (
       <div className="hero min-h-64 bg-base-100 rounded-2xl">
         <div className="hero-content text-center">
@@ -34,8 +39,7 @@ const Home = () => {
         <div>
           <h1 className="text-3xl font-bold">My Collections</h1>
           <p className="text-base-content/60 mt-1">
-            saved list
-            {data.length !== 1 ? "s" : ""}
+            {data.total} saved list{data.total !== 1 ? "s" : ""}
           </p>
         </div>
         <Link to="/create" className="btn btn-primary">
@@ -44,7 +48,7 @@ const Home = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data.map((col) => (
+        {data.collections.map((col) => (
           <div
             key={col._id}
             className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
@@ -74,6 +78,13 @@ const Home = () => {
           </div>
         ))}
       </div>
+
+      <Pagination
+        total={data.total}
+        limit={LIMIT}
+        offset={offset}
+        onPageChange={setOffset}
+      />
     </div>
   );
 };

@@ -17,7 +17,7 @@ export class CollectionsService {
     return this.collectionModel.findById(id).exec();
   }
 
-  async getAllCollections(limit = 20, offset = 0) {
+  async getAllCollections(limit = 12, offset = 0) {
     const collections = await this.collectionModel
       .find()
       .skip(offset)
@@ -27,7 +27,7 @@ export class CollectionsService {
     const total = await this.collectionModel.countDocuments();
 
     return {
-      data: collections,
+      collections: collections,
       total,
       limit,
       offset,
