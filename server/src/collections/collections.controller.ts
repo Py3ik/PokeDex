@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { CreateCollectionDto } from './dto/create-collection.dto';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('collections')
 export class CollectionsController {
@@ -24,8 +25,16 @@ export class CollectionsController {
     return this.collectionsService.remove(id);
   }
   @Get()
-  findAll(@Query('limit') limit: number, @Query('offset') offset: number) {
-    return this.collectionsService.getAllCollections(limit, offset);
+  @ApiQuery({ name: 'limit', required: false, type: String, default: '20' })
+  @ApiQuery({ name: 'offset', required: false, type: String, default: '0' })
+  findAll(
+    @Query('limit') limit: string = '20',
+    @Query('offset') offset: string = '0',
+  ) {
+    return this.collectionsService.getAllCollections(
+      Number(limit),
+      Number(offset),
+    );
   }
 
   @Get(':id')
