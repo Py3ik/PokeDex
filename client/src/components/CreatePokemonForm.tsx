@@ -1,7 +1,8 @@
-import { useToast } from "@/context/useToast";
 import { useCreateCollection } from "@/hooks/mutations/Collection/useCreateCollection";
 import type { PokemonSummary } from "@/types/pokemon";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Modal from "@/components/Modal";
 
 const MAX_TOTAL_WEIGHT = Number(import.meta.env.VITE_MAX_TOTAL_WEIGHT);
 const MIN_SPECIES = Number(import.meta.env.VITE_MIN_SPECIES);
@@ -15,24 +16,27 @@ const CreatePokemonForm = ({
   togglePokemon: (pokemon: PokemonSummary) => void;
   setSelected: (selected: PokemonSummary[]) => void;
 }) => {
+  const navigate = useNavigate();
   const [listName, setListName] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const successModalRef = useRef<HTMLDialogElement>(null);
   const totalWeight = selected.reduce((sum, p) => sum + p.weight, 0);
   const weightPercent = Math.min((totalWeight / MAX_TOTAL_WEIGHT) * 100, 100);
   const isOverweight = totalWeight > MAX_TOTAL_WEIGHT;
   const hasEnoughSpecies = selected.length >= MIN_SPECIES;
-  const showToast = useToast();
   const { mutateAsync, isPending } = useCreateCollection();
   const createCollection = async () => {
     const payload = {
       name: listName,
       pokemons: selected,
     };
-    await mutateAsync(payload).then(() => {
+    await mutateAsync(payload).then((created) => {
+      setCreatedId(created._id);
       setListName("");
       setSelected([]);
       setNameTouched(false);
-      showToast("Collection created successfully!", "success");
+      successModalRef.current?.showModal();
     });
   };
   return (
@@ -153,6 +157,28 @@ const CreatePokemonForm = ({
               "Save List"
             )}
           </button>
+
+          <Modal
+            ref={successModalRef}
+            title="Collection created!"
+            actions={
+              <div className="flex gap-2 justify-end w-full">
+                <form method="dialog">
+                  <button className="btn">Stay here</button>
+                </form>
+                <button
+                  className="btn btn-primary"
+                  onClick={() =>
+                    createdId && navigate(`/collection/${createdId}`)
+                  }
+                >
+                  Go to collection
+                </button>
+              </div>
+            }
+          >
+            <p>Your collection was successfully saved.</p>
+          </Modal>
         </div>
       </div>
     </div>
