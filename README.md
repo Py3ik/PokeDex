@@ -92,17 +92,3 @@ API docs (Swagger) at [http://localhost:3000/api](http://localhost:3000/api).
 | `POST`   | `/collections`          | Create collection (send full Pokemon objects) |
 | `POST`   | `/collections/import`   | Import collection by `{ name, pokemonIds[] }` |
 | `DELETE` | `/collections/:id`      | Delete collection                             |
-
-## Architectural Decisions
-
-**Separation of import and create endpoints**  
-`POST /collections` accepts full Pokemon objects from the client (used when creating via UI where data comes directly from PokeAPI). `POST /collections/import` accepts only `{ name, pokemonIds }` and re-fetches all Pokemon data server-side — this ensures imported files cannot contain manipulated weights, types, or names.
-
-**Single root `.env`**  
-All services (NestJS, Vite, Docker Compose) share one `.env` at the project root. Vite reads it via `envDir: ".."` in `vite.config.ts`. This avoids duplicating configuration across multiple files.
-
-**MongoDB stores full Pokemon data inside collections**  
-Each collection document embeds the full Pokemon snapshot (id, name, weight, image, types). `totalWeight` is computed as a virtual field. This keeps reads fast and self-contained without joins or additional PokeAPI calls at read time.
-
-**Docker Compose with `npm install` on start**  
-Both services run `npm install && npm run ...` on container start. This avoids stale `node_modules` when dependencies change between rebuilds without full image rebuilds.
