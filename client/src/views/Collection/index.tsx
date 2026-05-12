@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-const ViewList = () => {
+const Collection = () => {
   const showToast = useToast();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -171,4 +171,4 @@ const ViewList = () => {
   );
 };
 
-export default ViewList;
+export default Collection;

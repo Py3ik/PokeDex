@@ -68,7 +68,9 @@ const UploadCollection = () => {
             </form>
             <button
               className="btn btn-primary"
-              onClick={() => importedId && navigate(`/lists/${importedId}`)}
+              onClick={() =>
+                importedId && navigate(`/collection/${importedId}`)
+              }
             >
               Go to collection
             </button>

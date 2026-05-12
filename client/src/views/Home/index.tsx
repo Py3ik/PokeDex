@@ -64,7 +64,7 @@ const Home = () => {
 
               <div className="card-actions justify-end mt-3">
                 <Link
-                  to={`/lists/${col._id}`}
+                  to={`/collection/${col._id}`}
                   className="btn btn-sm btn-primary"
                 >
                   Open
