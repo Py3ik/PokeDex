@@ -1,12 +1,22 @@
 import Loading from "@/components/Loading";
+import Modal from "@/components/Modal";
 import { typeBadgeColor } from "@/constants/typeBadgeColor.ts";
+import { useToast } from "@/context/useToast";
+import { useDeleteCollection } from "@/hooks/mutations/Collection/useDeleteCollection";
 import { useCollectionById } from "@/hooks/queries/Collection/useCollectionById";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ViewList = () => {
+  const showToast = useToast();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useCollectionById(id!);
+  const { mutateAsync, isPending } = useDeleteCollection();
+
+  const deleteModalRef = useRef<HTMLDialogElement>(null);
 
   if (isLoading) {
     return <Loading />;
@@ -31,6 +41,15 @@ const ViewList = () => {
       </div>
     );
   }
+
+  const deleteCollection = async () => {
+    if (!data) return;
+    await mutateAsync(data._id).then(() => {
+      navigate("/");
+      showToast("Collection deleted successfully", "success");
+      deleteModalRef.current?.close();
+    });
+  };
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-start justify-between mb-6">
@@ -108,6 +127,38 @@ const ViewList = () => {
             <span>Total weight</span>
             <span className="text-lg font-bold">{data.totalWeight} hg</span>
           </div>
+          <div className="flex justify-end items-center text-sm font-medium">
+            <button
+              className="btn btn-error btn-sm"
+              onClick={() => deleteModalRef.current?.showModal()}
+            >
+              Delete
+            </button>
+          </div>
+          <Modal
+            ref={deleteModalRef}
+            title="Delete collection?"
+            actions={
+              <div className="flex gap-2 justify-end">
+                <form method="dialog">
+                  <button className="btn">Cancel</button>
+                </form>
+                <button
+                  className="btn btn-error"
+                  onClick={() => deleteCollection()}
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <span className="loading loading-spinner" />
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            }
+          >
+            <p>This action cannot be undone.</p>
+          </Modal>
         </div>
       </div>
     </div>
