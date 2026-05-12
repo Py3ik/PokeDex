@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PokemonModule } from './pokemon/pokemon.module';
+import { CollectionsModule } from './collections/collections.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PokemonModule } from './pokemon/pokemon.module';
     }),
 
     PokemonModule,
+    CollectionsModule,
   ],
 })
 export class AppModule {}
