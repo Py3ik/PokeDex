@@ -43,7 +43,17 @@ const CreatePokemonForm = ({
     <div className="lg:w-80 shrink-0">
       <div className="card bg-base-100 shadow-sm sticky top-4">
         <div className="card-body">
-          <h2 className="card-title text-lg">Selected Pokemon</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="card-title text-lg">Selected Pokemon</h2>
+            {selected.length > 0 && (
+              <button
+                className="btn btn-ghost btn-xs text-base-content/50"
+                onClick={() => setSelected([])}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
 
           <div className="mb-2">
             <div className="flex justify-between text-sm mb-1">
@@ -80,7 +90,7 @@ const CreatePokemonForm = ({
               <p className="text-sm">Click on Pokemon to add them</p>
             </div>
           ) : (
-            <ul className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+            <ul className="space-y-2 mb-4 max-h-64 overflow-y-auto pr-1">
               {selected.map((p) => (
                 <li
                   key={p.id}
