@@ -21,7 +21,7 @@ A full-stack web application for creating and managing personal Pokemon collecti
 
 ```bash
 git clone <repo-url>
-cd pokemon-app
+cd PokeDex
 ```
 
 ### 2. Create the environment file
