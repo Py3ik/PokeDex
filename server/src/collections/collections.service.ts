@@ -39,22 +39,7 @@ export class CollectionsService {
 
   async create(createCollectionDto: CreateCollectionDto) {
     const { pokemons } = createCollectionDto;
-    const maxWeight = this.config.get<number>('MAX_TOTAL_WEIGHT', 1300);
-    const minSpecies = this.config.get<number>('MIN_SPECIES', 3);
-
-    const uniqueSpecies = new Set(pokemons.map((p) => p.name)).size;
-    if (uniqueSpecies < minSpecies) {
-      throw new BadRequestException(
-        `At least ${minSpecies} different species must be selected`,
-      );
-    }
-
-    const totalWeight = pokemons.reduce((sum, p) => sum + p.weight, 0);
-    if (totalWeight > maxWeight) {
-      throw new BadRequestException(
-        `Total weight ${totalWeight} hg exceeds the limit of ${maxWeight} hg`,
-      );
-    }
+    const totalWeight = this.validatePokemons(pokemons);
 
     const name = await this.generateUniqueName(createCollectionDto.name);
     const createdCollection = await this.collectionModel.create({
@@ -84,10 +69,18 @@ export class CollectionsService {
   }
 
   async importCollection(dto: ImportCollectionDto) {
+    const pokemons = await this.pokemonService.fetchManyByIds(dto.pokemonIds);
+    const totalWeight = this.validatePokemons(pokemons);
+
+    const name = await this.generateUniqueName(dto.name);
+    return this.collectionModel.create({ name, pokemons, totalWeight });
+  }
+
+  private validatePokemons(
+    pokemons: { name: string; weight: number }[],
+  ): number {
     const maxWeight = this.config.get<number>('MAX_TOTAL_WEIGHT', 1300);
     const minSpecies = this.config.get<number>('MIN_SPECIES', 3);
-
-    const pokemons = await this.pokemonService.fetchManyByIds(dto.pokemonIds);
 
     const uniqueSpecies = new Set(pokemons.map((p) => p.name)).size;
     if (uniqueSpecies < minSpecies) {
@@ -103,7 +96,6 @@ export class CollectionsService {
       );
     }
 
-    const name = await this.generateUniqueName(dto.name);
-    return this.collectionModel.create({ name, pokemons, totalWeight });
+    return totalWeight;
   }
 }
