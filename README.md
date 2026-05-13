@@ -1,4 +1,4 @@
-# Pokemon Collection App
+# PokeDex App
 
 A full-stack web application for creating and managing personal Pokemon collections. Browse Pokemon from the PokeAPI, build teams, export them to JSON, and import them back.
 
