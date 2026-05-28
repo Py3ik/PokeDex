@@ -2,7 +2,7 @@ import { usePokemons } from "@/hooks/queries/Pokemon/usePokemons";
 import { useSearchPokemon } from "@/hooks/queries/Pokemon/useSearchPokemon";
 import { useDebounce } from "@/hooks/common/useDebounce";
 import type { PokemonSummary } from "@/types/pokemon";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import PokemonCard from "@/components/PokemonCard";
 import Loading from "@/components/Loading";
@@ -14,17 +14,23 @@ const MIN_SPECIES = Number(import.meta.env.VITE_MIN_SPECIES);
 
 const CreateList = () => {
   const { ref, inView } = useInView();
-  const [selected, setSelected] = useState<PokemonSummary[]>([]);
+  const [selected, setSelected] = useState<Map<number, PokemonSummary>>(
+    () => new Map(),
+  );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
 
-  const togglePokemon = (pokemon: PokemonSummary) => {
-    setSelected((prev) =>
-      prev.some((p) => p.id === pokemon.id)
-        ? prev.filter((p) => p.id !== pokemon.id)
-        : [...prev, pokemon],
-    );
-  };
+  const togglePokemon = useCallback((pokemon: PokemonSummary) => {
+    setSelected((prev) => {
+      const newSet = new Map(prev);
+      if (newSet.has(pokemon.id)) {
+        newSet.delete(pokemon.id);
+      } else {
+        newSet.set(pokemon.id, pokemon);
+      }
+      return newSet;
+    });
+  }, []);
 
   const { data, fetchNextPage, hasNextPage, isLoading } = usePokemons();
   const { data: searchData, isFetching: isSearching } =
@@ -96,7 +102,7 @@ const CreateList = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
             {pokemons.map((pokemon) => {
-              const isSelected = selected.some((p) => p.id === pokemon.id);
+              const isSelected = selected.has(pokemon.id);
               return (
                 <PokemonCard
                   key={pokemon.id}

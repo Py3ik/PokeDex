@@ -1,6 +1,6 @@
 import { useCreateCollection } from "@/hooks/mutations/Collection/useCreateCollection";
 import type { PokemonSummary } from "@/types/pokemon";
-import { useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "@/components/Modal";
 
@@ -12,29 +12,41 @@ const CreatePokemonForm = ({
   togglePokemon,
   setSelected,
 }: {
-  selected: PokemonSummary[];
+  selected: Map<number, PokemonSummary>;
   togglePokemon: (pokemon: PokemonSummary) => void;
-  setSelected: (selected: PokemonSummary[]) => void;
+  setSelected: (selected: Map<number, PokemonSummary>) => void;
 }) => {
+  const selectedPokemons = useMemo(
+    () => Array.from(selected.values()),
+    [selected],
+  );
   const navigate = useNavigate();
   const [listName, setListName] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const successModalRef = useRef<HTMLDialogElement>(null);
-  const totalWeight = selected.reduce((sum, p) => sum + p.weight, 0);
+
+  const totalWeight = useMemo(() => {
+    let sum = 0;
+    for (const p of selected.values()) {
+      sum += p.weight;
+    }
+    return sum;
+  }, [selected]);
+
   const weightPercent = Math.min((totalWeight / MAX_TOTAL_WEIGHT) * 100, 100);
   const isOverweight = totalWeight > MAX_TOTAL_WEIGHT;
-  const hasEnoughSpecies = selected.length >= MIN_SPECIES;
+  const hasEnoughSpecies = selected.size >= MIN_SPECIES;
   const { mutateAsync, isPending } = useCreateCollection();
   const createCollection = async () => {
     const payload = {
       name: listName,
-      pokemons: selected,
+      pokemons: selectedPokemons,
     };
     await mutateAsync(payload).then((created) => {
       setCreatedId(created._id);
       setListName("");
-      setSelected([]);
+      setSelected(new Map());
       setNameTouched(false);
       successModalRef.current?.showModal();
     });
@@ -45,10 +57,10 @@ const CreatePokemonForm = ({
         <div className="card-body">
           <div className="flex items-center justify-between">
             <h2 className="card-title text-lg">Selected Pokemon</h2>
-            {selected.length > 0 && (
+            {selected.size > 0 && (
               <button
                 className="btn btn-ghost btn-xs text-base-content/50"
-                onClick={() => setSelected([])}
+                onClick={() => setSelected(new Map())}
               >
                 Clear all
               </button>
@@ -84,14 +96,14 @@ const CreatePokemonForm = ({
             </div>
           </div>
 
-          {selected.length === 0 ? (
+          {selected.size === 0 ? (
             <div className="text-center py-6 text-base-content/40">
               <div className="text-3xl mb-2">👆</div>
               <p className="text-sm">Click on Pokemon to add them</p>
             </div>
           ) : (
             <ul className="space-y-2 mb-4 max-h-64 overflow-y-auto pr-1">
-              {selected.map((p) => (
+              {selectedPokemons.map((p) => (
                 <li
                   key={p.id}
                   className="flex items-center justify-between gap-2"
@@ -155,7 +167,7 @@ const CreatePokemonForm = ({
             disabled={
               !hasEnoughSpecies ||
               isOverweight ||
-              selected.length === 0 ||
+              selected.size === 0 ||
               listName.trim() === "" ||
               isPending
             }
@@ -195,4 +207,4 @@ const CreatePokemonForm = ({
   );
 };
 
-export default CreatePokemonForm;
+export default memo(CreatePokemonForm);
